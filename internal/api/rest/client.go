@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/americanas-go/errors"
 	validator "github.com/go-playground/validator/v10"
 )
 
@@ -25,10 +26,13 @@ func NewCLientHandler(serv service.IclientService) IClientHandler {
 	}
 }
 
+type ResponseDefault struct {
+	Message string `json:"message"`
+}
+
 func (c *ClientHandler) CreatedClientHandler(w http.ResponseWriter, r *http.Request) {
 
 	var clientRequest dto.ClientRequest
-	//ctx := context.WithValue(context.Background(),  uuid.New().String(),  uuid.New().String())
 	err := json.NewDecoder(r.Body).Decode(&clientRequest)
 	if err != nil {
 
@@ -49,18 +53,24 @@ func (c *ClientHandler) CreatedClientHandler(w http.ResponseWriter, r *http.Requ
 		Telefone: clientRequest.ClientTel,
 	})
 	if err != nil {
-
-		w.WriteHeader(500)
+		if errors.IsNotFound(err) {
+			w.WriteHeader(http.StatusNotFound)
+			encodeErr := json.NewEncoder(w).Encode(ResponseDefault{Message: err.Error()})
+			if encodeErr != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	return
 
 }
 
 func validateStruct(v interface{}) error {
-	var validate *validator.Validate
-	validate = validator.New()
+
+	validate := validator.New()
 
 	errs := validate.Struct(v)
 	if errs != nil {
