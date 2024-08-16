@@ -1,0 +1,25 @@
+ignite:
+  log:
+    type: ZEROLOG
+  zerolog:
+    level: TRACE
+    formatter: JSON
+    console:
+      enabled: true
+    profiler:
+      enabled: false
+
+
+app:    
+  domain:
+    service:
+      attribute:
+        rules:
+          use_predefined_values: WARN
+          variation: WARN
+          describe_image: WARN
+          multivalued: WARN
+          required: ERROR
+  provider:
+
+    
