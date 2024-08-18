@@ -4,8 +4,12 @@ import (
 	handler "golang-uber-fx/adapter/http"
 	repository "golang-uber-fx/adapter/mysql/clienteRepository"
 	service "golang-uber-fx/core/usecase"
+	my "golang-uber-fx/adapter/mysql"
+	
 
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
+
+	log "golang-uber-fx/util/log"
 
 	"go.uber.org/fx"
 )
@@ -53,15 +57,24 @@ var ModuleHandler = fx.Module("handler", fx.Provide(
 		handler.NewServer,
 		fx.As(new(handler.IClientServer)),
 	),
+
+))
+var ModuleLog = fx.Module("log", fx.Provide(
+	fx.Annotate(
+		log.NewLogLevel,
+		fx.As(new(log.ILogLevel)),
+	),
 ))
 
 func Start2() {
-
 	fx.New(
 		fx.Provide(
 			mux.NewRouter,
+			my.NewConnectDB,
+			
 		),
 		ModuleRepository,
+		ModuleLog,
 		ModuleService,
 		ModuleHandler,
 

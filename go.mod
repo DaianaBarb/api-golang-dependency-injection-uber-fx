@@ -4,6 +4,8 @@ go 1.22.5
 
 require (
 	github.com/go-playground/validator/v10 v10.19.0
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/joho/godotenv v1.5.1
 	go.uber.org/fx v1.21.0
 	golang.org/x/text v0.14.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.62.0

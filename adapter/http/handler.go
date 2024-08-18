@@ -48,7 +48,7 @@ func NewServer(serv service.Iservice) IClientServer {
 }
 
 func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
-
+     
 	cliRequest := new(model.Cliente)
 	err := json.NewDecoder(r.Body).Decode(&cliRequest)
 	if err != nil {
@@ -56,6 +56,7 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 		errors.UnprocessableEntityf("unprocessable entity error: %v", err)
 		return
 	}
+	
 
 	c.serv.SaveCliente(cliRequest)
 	w.Header().Add("Content-Type", "application/json")

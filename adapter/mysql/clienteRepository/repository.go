@@ -1,6 +1,9 @@
 package repository
 
-import model "golang-uber-fx/core/domain"
+import (
+	"database/sql"
+	model "golang-uber-fx/core/domain"
+)
 
 type Irepository interface {
 	SaveCliente(cliente *model.Cliente)
@@ -9,6 +12,7 @@ type Irepository interface {
 }
 
 type Repository struct {
+	db *sql.DB
 }
 
 // DeleteCliente implements Irepository.
@@ -25,7 +29,9 @@ func (r *Repository) FindCliente(cpf string) {
 	print(" encontrando cliente  " + cpf)
 }
 
-func NewRepository() Irepository {
-	return &Repository{}
+func NewRepository(db *sql.DB) Irepository {
+	return &Repository{
+		db: db,
+	}
 
 }
