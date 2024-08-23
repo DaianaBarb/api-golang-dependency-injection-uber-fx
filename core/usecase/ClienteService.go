@@ -7,9 +7,9 @@ import (
 )
 
 type Iservice interface {
-	SaveCliente(cliente *model.Cliente)
-	DeleteCliente(cpf string)
-	FindCliente(cpf string)
+	SaveCliente(cliente *model.Cliente) error
+	DeleteCliente(cpf string) error
+	FindCliente(cpf string) (*model.Cliente, error)
 }
 
 type Service struct {
@@ -18,22 +18,44 @@ type Service struct {
 }
 
 // FindCliente implements Iservice.
-func (s *Service) FindCliente(cpf string) {
-	s.repository.FindCliente(cpf)
+func (s *Service) FindCliente(cpf string) (*model.Cliente, error) {
+	// criar DTO e transdormar aqui
+
+	cliente, err := s.repository.FindCliente(cpf)
+	if err != nil {
+		s.log.LogLevelError("------------save error-------------")
+		return nil, err
+
+	}
+	s.log.LogLevelInfo("------------save sucess-------------")
+
+	return cliente, err
 }
 
 // DeleteCliente implements Iservice.
-func (s *Service) DeleteCliente(cpf string) {
-	s.repository.DeleteCliente(cpf)
-	s.log.LogLevelError("delete error")
+func (s *Service) DeleteCliente(cpf string) error {
+	// criar DTO e transdormar aqui
+	err := s.repository.DeleteCliente(cpf)
+	if err != nil {
+		s.log.LogLevelError("------------save error-------------")
+		return err
 
+	}
+	s.log.LogLevelError("delete error")
+	return nil
 }
 
 // SaveCliente implements Iservice.
-func (s *Service) SaveCliente(cliente *model.Cliente) {
+func (s *Service) SaveCliente(cliente *model.Cliente) error {
+	// criar DTO e transdormar aqui
+	err := s.repository.SaveCliente(cliente)
+	if err != nil {
+		s.log.LogLevelError("------------save error-------------")
+		return err
 
-	s.repository.SaveCliente(cliente)
+	}
 	s.log.LogLevelInfo("------------save sucess-------------")
+	return nil
 }
 
 func NewService(repo repository.Irepository, l log.ILogLevel) Iservice {
