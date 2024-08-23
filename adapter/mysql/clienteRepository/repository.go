@@ -29,6 +29,8 @@ func (r *Repository) DeleteCliente(cpf string) error {
 	return nil
 }
 
+
+
 // SaveCliente implements Irepository.
 func (r *Repository) SaveCliente(cliente *model.Cliente) error {
 	_, err := r.db.Exec("INSERT INTO cliente (client_name, client_tel, client_cpf, ) VALUES (?, ?, ?)", cliente.Name, cliente.Tel, cliente.Cpf)
@@ -48,7 +50,7 @@ func (r *Repository) FindCliente(cpf string) (*model.Cliente, error) {
 	row := r.db.QueryRow("SELECT client_name, client_tel, client_cpf FROM cliente WHERE client_cpf = ?", cpf)
 	if err := row.Scan(&cli); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NotFoundf("cpf %s: not found tag", cpf)
+			return nil, errors.NotFoundf("cpf %s: not found cliente", cpf)
 		}
 		return nil, fmt.Errorf("cpf  %s: error: %v", cpf, err)
 	}

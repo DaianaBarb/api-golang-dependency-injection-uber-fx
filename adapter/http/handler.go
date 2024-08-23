@@ -34,9 +34,9 @@ type ClientServer struct {
 	//router *mux.Router
 }
 
-type IServerMux interface {
-	HandleFunc(path string, f func(http.ResponseWriter, *http.Request))
-}
+// type IServerMux interface {
+// 	HandleFunc(path string, f func(http.ResponseWriter, *http.Request))
+// }
 
 func NewServer(serv service.Iservice) IClientServer {
 
@@ -48,19 +48,44 @@ func NewServer(serv service.Iservice) IClientServer {
 }
 
 func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
-     
+	w.Header().Set("Content-Type", "application/json")
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		err := json.NewEncoder(w).Encode("Missing authorization header")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode("Unauthorized")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+
+		return
+	}
+
+	tokenString = tokenString[len("Bearer "):]
+
+	err := VerifyToken(tokenString)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Invalid token")
+		return
+	}
+
 	cliRequest := new(model.Cliente)
-	err := json.NewDecoder(r.Body).Decode(&cliRequest)
+	err = json.NewDecoder(r.Body).Decode(&cliRequest)
 	if err != nil {
 
 		errors.UnprocessableEntityf("unprocessable entity error: %v", err)
 		return
 	}
-	
 
 	c.serv.SaveCliente(cliRequest)
 	w.Header().Add("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(cliRequest)
+	err = json.NewEncoder(w).Encode(&cliRequest)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -69,6 +94,33 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 
 }
 func (c *ClientServer) Find(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		err := json.NewEncoder(w).Encode("Missing authorization header")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode("Unauthorized")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+
+		return
+	}
+
+	tokenString = tokenString[len("Bearer "):]
+
+	err := VerifyToken(tokenString)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Invalid token")
+		return
+	}
 
 	//vars := r.URL.Query()  este modo pega as queries da url, do outro modo pega o {cpf} da url definida
 	vars := mux.Vars(r)
@@ -79,17 +131,52 @@ func (c *ClientServer) Find(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.serv.FindCliente(cpf)
+	cli, err := c.serv.FindCliente(cpf)
 	w.Header().Add("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(cpf)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	if cli != nil {
+		err = json.NewEncoder(w).Encode(cli)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+
+	}
+	w.WriteHeader(http.StatusNotFound)
 
 }
 func (c *ClientServer) Del(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		err := json.NewEncoder(w).Encode("Missing authorization header")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		err = json.NewEncoder(w).Encode("Unauthorized")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+
+		return
+	}
+
+	tokenString = tokenString[len("Bearer "):]
+
+	err := VerifyToken(tokenString)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Invalid token")
+		return
+	}
 	vars := mux.Vars(r)
 	cpf, ok := vars["cpf"]
 	if !ok {
