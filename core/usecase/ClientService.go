@@ -1,7 +1,7 @@
 package service
 
 import (
-	repository "golang-uber-fx/adapter/mysql/clienteRepository"
+	repository "golang-uber-fx/adapter/mysql/repository"
 	model "golang-uber-fx/core/domain"
 	log "golang-uber-fx/util/log"
 )
@@ -13,7 +13,7 @@ type Iservice interface {
 }
 
 type Service struct {
-	repository repository.Irepository
+	repository repository.IClientRepository
 	log        log.ILogLevel
 }
 
@@ -58,7 +58,7 @@ func (s *Service) SaveCliente(cliente *model.Cliente) error {
 	return nil
 }
 
-func NewService(repo repository.Irepository, l log.ILogLevel) Iservice {
+func NewService(repo repository.IClientRepository, l log.ILogLevel) Iservice {
 	return &Service{
 		repository: repo,
 		log:        l,

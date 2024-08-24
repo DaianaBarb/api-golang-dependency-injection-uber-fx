@@ -23,7 +23,7 @@ type IUserServer interface {
 }
 
 type UserServer struct {
-	serv service.IUserservice
+	serv service.IUserService
 	//router *mux.Router
 }
 
@@ -95,7 +95,7 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 // 	HandleFunc(path string, f func(http.ResponseWriter, *http.Request))
 // }
 
-func NewUserServer(serv service.IUserservice) IUserServer {
+func NewUserServer(serv service.IUserService) IUserServer {
 
 	return &UserServer{
 		serv: serv,

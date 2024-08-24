@@ -8,18 +8,18 @@ import (
 	"strings"
 )
 
-type Irepository interface {
+type IClientRepository interface {
 	SaveCliente(cliente *model.Cliente) error
 	DeleteCliente(cpf string) error
 	FindCliente(cpf string) (*model.Cliente, error)
 }
 
-type Repository struct {
+type ClientRepository struct {
 	db *sql.DB
 }
 
 // DeleteCliente implements Irepository.
-func (r *Repository) DeleteCliente(cpf string) error {
+func (r *ClientRepository) DeleteCliente(cpf string) error {
 
 	_, err := r.db.Exec("DELETE FROM cliente WHERE cliente_cpf=?", cpf)
 	if err != nil {
@@ -29,10 +29,8 @@ func (r *Repository) DeleteCliente(cpf string) error {
 	return nil
 }
 
-
-
-// SaveCliente implements Irepository.
-func (r *Repository) SaveCliente(cliente *model.Cliente) error {
+// SaveCliente implements IClientRepository.
+func (r *ClientRepository) SaveCliente(cliente *model.Cliente) error {
 	_, err := r.db.Exec("INSERT INTO cliente (client_name, client_tel, client_cpf, ) VALUES (?, ?, ?)", cliente.Name, cliente.Tel, cliente.Cpf)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
@@ -44,7 +42,7 @@ func (r *Repository) SaveCliente(cliente *model.Cliente) error {
 	return nil
 }
 
-func (r *Repository) FindCliente(cpf string) (*model.Cliente, error) {
+func (r *ClientRepository) FindCliente(cpf string) (*model.Cliente, error) {
 
 	cli := &model.Cliente{}
 	row := r.db.QueryRow("SELECT client_name, client_tel, client_cpf FROM cliente WHERE client_cpf = ?", cpf)
@@ -57,8 +55,8 @@ func (r *Repository) FindCliente(cpf string) (*model.Cliente, error) {
 	return cli, nil
 }
 
-func NewRepository(db *sql.DB) Irepository {
-	return &Repository{
+func NewClientRepository(db *sql.DB) IClientRepository {
+	return &ClientRepository{
 		db: db,
 	}
 

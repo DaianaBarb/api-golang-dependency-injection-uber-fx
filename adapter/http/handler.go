@@ -15,19 +15,19 @@ type IClientServer interface {
 	Save(w http.ResponseWriter, r *http.Request)
 	Find(w http.ResponseWriter, r *http.Request)
 	Del(w http.ResponseWriter, r *http.Request)
-	RegisterRoutes()
+	//RegisterRoutes()
 }
 
-func (s *ClientServer) RegisterRoutes() {
+// func (s *ClientServer) RegisterRoutes() {
 
-	c := mux.NewRouter()
+// 	c := mux.NewRouter()
 
-	c.HandleFunc("/cliente/{cpf}", s.Find).Methods("GET")
-	c.HandleFunc("/cliente", s.Save).Methods("POST")
-	c.HandleFunc("/cliente/{cpf}", s.Del).Methods("DELETE")
-	fmt.Println(" online na porta 8080")
-	http.ListenAndServe(":8080", c)
-}
+// 	c.HandleFunc("/cliente/{cpf}", s.Find).Methods("GET")
+// 	c.HandleFunc("/cliente", s.Save).Methods("POST")
+// 	c.HandleFunc("/cliente/{cpf}", s.Del).Methods("DELETE")
+// 	fmt.Println(" online na porta 8080")
+// 	http.ListenAndServe(":8080", c)
+// }
 
 type ClientServer struct {
 	serv service.Iservice

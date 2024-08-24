@@ -2,10 +2,10 @@ package server
 
 import (
 	handler "golang-uber-fx/adapter/http"
-	repository "golang-uber-fx/adapter/mysql/clienteRepository"
-	service "golang-uber-fx/core/usecase"
 	my "golang-uber-fx/adapter/mysql"
-	
+	repository "golang-uber-fx/adapter/mysql/repository"
+	service "golang-uber-fx/core/usecase"
+	"golang-uber-fx/routes"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 
@@ -20,13 +20,13 @@ func Start() {
 		fx.Options(
 
 			fx.Provide(
-				repository.NewRepository,
+				repository.NewClientRepository,
 				service.NewService,
 				mux.NewRouter,
 				handler.NewServer,
 			),
 			fx.Invoke(func(job handler.IClientServer) {
-				job.RegisterRoutes()
+				//job.RegisterRoutes()
 			},
 			),
 		),
@@ -36,28 +36,54 @@ func Start() {
 
 // outra forma de chamar o fx e a forma que vc cria uma anotação com o nome da função e informa o retorno dela dentro de um fx.As
 
-var ModuleRepository = fx.Module("repository", fx.Provide(
+var ModuleClientRepository = fx.Module("repository", fx.Provide(
 	fx.Annotate(
-		repository.NewRepository,
-		fx.As(new(repository.Irepository)),
+		repository.NewClientRepository,
+		fx.As(new(repository.IClientRepository)),
+	),
+),
+)
+var ModuleUserRepository = fx.Module("UserRepository", fx.Provide(
+	fx.Annotate(
+		repository.NewUserRepository,
+		fx.As(new(repository.IUserRepository)),
 	),
 ),
 )
 
-var ModuleService = fx.Module("service", fx.Provide(
+var ModuleClientService = fx.Module("service", fx.Provide(
 	fx.Annotate(
 		service.NewService,
 		fx.As(new(service.Iservice)),
 	),
 ),
 )
+var ModuleUserService = fx.Module("Userservice", fx.Provide(
+	fx.Annotate(
+		service.NewUserService,
+		fx.As(new(service.IUserService)),
+	),
+),
+)
 
-var ModuleHandler = fx.Module("handler", fx.Provide(
+var ModuleClientHandler = fx.Module("Clienthandler", fx.Provide(
 	fx.Annotate(
 		handler.NewServer,
 		fx.As(new(handler.IClientServer)),
 	),
+))
 
+var ModuleUserHandler = fx.Module("Userhandler", fx.Provide(
+	fx.Annotate(
+		handler.NewServer,
+		fx.As(new(handler.IUserServer)),
+	),
+))
+var ModuleRoutes = fx.Module("routes", fx.Provide(
+	fx.Annotate(
+		routes.NewRoutes,
+		fx.As(new(routes.IRoutes)),
+	),
 ))
 var ModuleLog = fx.Module("log", fx.Provide(
 	fx.Annotate(
@@ -71,14 +97,17 @@ func Start2() {
 		fx.Provide(
 			mux.NewRouter,
 			my.NewConnectDB,
-			
 		),
-		ModuleRepository,
+		ModuleClientRepository,
+		ModuleUserRepository,
 		ModuleLog,
-		ModuleService,
-		ModuleHandler,
+		ModuleClientService,
+		ModuleUserService,
+		ModuleClientHandler,
+		ModuleRoutes,
+		ModuleUserHandler,
 
-		fx.Invoke(func(job handler.IClientServer) error {
+		fx.Invoke(func(job routes.IRoutes) error {
 
 			job.RegisterRoutes()
 			// OU ...
