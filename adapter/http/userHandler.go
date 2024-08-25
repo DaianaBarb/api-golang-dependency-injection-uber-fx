@@ -8,6 +8,7 @@ import (
 	model "golang-uber-fx/core/domain"
 	dto "golang-uber-fx/core/dto"
 	service "golang-uber-fx/core/usecase"
+	"golang-uber-fx/util"
 	"golang-uber-fx/util/errors"
 	"net/http"
 	"os"
@@ -20,14 +21,14 @@ import (
 type IUserServer interface {
 	Save(w http.ResponseWriter, r *http.Request)
 	Find(w http.ResponseWriter, r *http.Request)
+	CreateToken(w http.ResponseWriter, r *http.Request)
 }
 
 type UserServer struct {
 	serv service.IUserService
-	//router *mux.Router
 }
 
-// Find implements IUserServer.
+// criar logs
 func (u *UserServer) Find(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name, ok := vars["name"]
@@ -51,8 +52,6 @@ func (u *UserServer) Find(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// Save implements IUserServer.
-
 func createHashSha256(password string) string {
 
 	h := sha256.New()
@@ -69,7 +68,7 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 		errors.UnprocessableEntityf("unprocessable entity error: %v", err)
 		return
 	}
-
+	util.ValidateStruct(userRequest)
 	userRequest.Password = createHashSha256(userRequest.Password)
 	u.serv.SaveUser(userRequest)
 	w.Header().Add("Content-Type", "application/json")
@@ -90,10 +89,6 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 }
-
-// type IServerMux interface {
-// 	HandleFunc(path string, f func(http.ResponseWriter, *http.Request))
-// }
 
 func NewUserServer(serv service.IUserService) IUserServer {
 

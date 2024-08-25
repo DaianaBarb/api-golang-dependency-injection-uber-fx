@@ -8,10 +8,12 @@ import (
 	"strings"
 )
 
+//criar logs
+
 type IClientRepository interface {
-	SaveCliente(cliente *model.Cliente) error
-	DeleteCliente(cpf string) error
-	FindCliente(cpf string) (*model.Cliente, error)
+	SaveClient(client *model.Client) error
+	DeleteClient(cpf string) error
+	FindClient(cpf string) (*model.Client, error)
 }
 
 type ClientRepository struct {
@@ -19,36 +21,36 @@ type ClientRepository struct {
 }
 
 // DeleteCliente implements Irepository.
-func (r *ClientRepository) DeleteCliente(cpf string) error {
+func (r *ClientRepository) DeleteClient(cpf string) error {
 
-	_, err := r.db.Exec("DELETE FROM cliente WHERE cliente_cpf=?", cpf)
+	_, err := r.db.Exec("DELETE FROM client_cli WHERE client_cpf=?", cpf)
 	if err != nil {
-		return fmt.Errorf("cliente delete error, cpf:  %s: error: %v", cpf, err)
+		return fmt.Errorf("client delete error, cpf:  %s: error: %v", cpf, err)
 
 	}
 	return nil
 }
 
 // SaveCliente implements IClientRepository.
-func (r *ClientRepository) SaveCliente(cliente *model.Cliente) error {
-	_, err := r.db.Exec("INSERT INTO cliente (client_name, client_tel, client_cpf, ) VALUES (?, ?, ?)", cliente.Name, cliente.Tel, cliente.Cpf)
+func (r *ClientRepository) SaveClient(client *model.Client) error {
+	_, err := r.db.Exec("INSERT INTO client_cli (client_name, client_tel, client_cpf, client_createdAt, client_active ) VALUES (?, ?, ?, ?, ?)", client.Name, client.Tel, client.Cpf, client.CreatedAt, client.Active)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			return errors.AlreadyExistsf("Name '%s' create error: client already exists", cliente.Name)
+			return errors.AlreadyExistsf("Name '%s' create error: client already exists", client.Name)
 		} else {
-			return fmt.Errorf("cliente save error, name:  %s: error: %v", cliente.Name, err)
+			return fmt.Errorf("cliente save error, name:  %s: error: %v", client.Name, err)
 		}
 	}
 	return nil
 }
 
-func (r *ClientRepository) FindCliente(cpf string) (*model.Cliente, error) {
+func (r *ClientRepository) FindClient(cpf string) (*model.Client, error) {
 
-	cli := &model.Cliente{}
-	row := r.db.QueryRow("SELECT client_name, client_tel, client_cpf FROM cliente WHERE client_cpf = ?", cpf)
+	cli := &model.Client{}
+	row := r.db.QueryRow("SELECT client_name, client_tel, client_cpf, client_createdAt, client_active FROM client_cli WHERE client_cpf = ?", cpf)
 	if err := row.Scan(&cli); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.NotFoundf("cpf %s: not found cliente", cpf)
+			return nil, errors.NotFoundf("cpf %s: not found client", cpf)
 		}
 		return nil, fmt.Errorf("cpf  %s: error: %v", cpf, err)
 	}

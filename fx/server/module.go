@@ -54,7 +54,7 @@ var ModuleUserRepository = fx.Module("UserRepository", fx.Provide(
 var ModuleClientService = fx.Module("service", fx.Provide(
 	fx.Annotate(
 		service.NewService,
-		fx.As(new(service.Iservice)),
+		fx.As(new(service.IClientService)),
 	),
 ),
 )
@@ -75,7 +75,7 @@ var ModuleClientHandler = fx.Module("Clienthandler", fx.Provide(
 
 var ModuleUserHandler = fx.Module("Userhandler", fx.Provide(
 	fx.Annotate(
-		handler.NewServer,
+		handler.NewUserServer,
 		fx.As(new(handler.IUserServer)),
 	),
 ))

@@ -21,6 +21,7 @@ func (s *Routes) RegisterRoutes() {
 	c.HandleFunc("/client/{cpf}", s.hanCli.Del).Methods("DELETE")
 	c.HandleFunc("/user", s.hanUse.Save).Methods("POST")
 	c.HandleFunc("/user/{name}", s.hanUse.Find).Methods("GET")
+	c.HandleFunc("/user/passport", s.hanUse.CreateToken).Methods("POST")
 
 	fmt.Println(" online na porta 8080")
 	http.ListenAndServe(":8080", c)

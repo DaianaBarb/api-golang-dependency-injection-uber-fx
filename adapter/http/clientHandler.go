@@ -3,8 +3,9 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	model "golang-uber-fx/core/domain"
+	"golang-uber-fx/core/dto"
 	service "golang-uber-fx/core/usecase"
+	"golang-uber-fx/util"
 	"golang-uber-fx/util/errors"
 	"net/http"
 
@@ -15,30 +16,15 @@ type IClientServer interface {
 	Save(w http.ResponseWriter, r *http.Request)
 	Find(w http.ResponseWriter, r *http.Request)
 	Del(w http.ResponseWriter, r *http.Request)
-	//RegisterRoutes()
 }
-
-// func (s *ClientServer) RegisterRoutes() {
-
-// 	c := mux.NewRouter()
-
-// 	c.HandleFunc("/cliente/{cpf}", s.Find).Methods("GET")
-// 	c.HandleFunc("/cliente", s.Save).Methods("POST")
-// 	c.HandleFunc("/cliente/{cpf}", s.Del).Methods("DELETE")
-// 	fmt.Println(" online na porta 8080")
-// 	http.ListenAndServe(":8080", c)
-// }
 
 type ClientServer struct {
-	serv service.Iservice
-	//router *mux.Router
+	serv service.IClientService
 }
 
-// type IServerMux interface {
-// 	HandleFunc(path string, f func(http.ResponseWriter, *http.Request))
-// }
+//criar logs
 
-func NewServer(serv service.Iservice) IClientServer {
+func NewServer(serv service.IClientService) IClientServer {
 
 	return &ClientServer{
 		serv: serv,
@@ -75,17 +61,17 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cliRequest := new(model.Cliente)
+	cliRequest := new(dto.ClientDtoRequest)
 	err = json.NewDecoder(r.Body).Decode(&cliRequest)
 	if err != nil {
 
 		errors.UnprocessableEntityf("unprocessable entity error: %v", err)
 		return
 	}
+	util.ValidateStruct(cliRequest)
 
-	c.serv.SaveCliente(cliRequest)
+	c.serv.SaveClient(dto.ToClientModel(cliRequest))
 	w.Header().Add("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(&cliRequest)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -131,7 +117,7 @@ func (c *ClientServer) Find(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cli, err := c.serv.FindCliente(cpf)
+	cli, err := c.serv.FindClient(cpf)
 	w.Header().Add("Content-Type", "application/json")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -183,7 +169,7 @@ func (c *ClientServer) Del(w http.ResponseWriter, r *http.Request) {
 		errors.NewBadRequest(nil, "error to parser query params")
 		return
 	}
-	c.serv.DeleteCliente(cpf)
+	c.serv.DeleteClient(cpf)
 	w.WriteHeader(http.StatusOK)
 
 }

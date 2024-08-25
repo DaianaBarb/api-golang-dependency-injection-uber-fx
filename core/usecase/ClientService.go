@@ -3,13 +3,14 @@ package service
 import (
 	repository "golang-uber-fx/adapter/mysql/repository"
 	model "golang-uber-fx/core/domain"
+	"golang-uber-fx/core/dto"
 	log "golang-uber-fx/util/log"
 )
 
-type Iservice interface {
-	SaveCliente(cliente *model.Cliente) error
-	DeleteCliente(cpf string) error
-	FindCliente(cpf string) (*model.Cliente, error)
+type IClientService interface {
+	SaveClient(cliente *model.Client) error
+	DeleteClient(cpf string) error
+	FindClient(cpf string) (*dto.ClientDtoResponse, error)
 }
 
 type Service struct {
@@ -18,10 +19,10 @@ type Service struct {
 }
 
 // FindCliente implements Iservice.
-func (s *Service) FindCliente(cpf string) (*model.Cliente, error) {
+func (s *Service) FindClient(cpf string) (*dto.ClientDtoResponse, error) {
 	// criar DTO e transdormar aqui
 
-	cliente, err := s.repository.FindCliente(cpf)
+	cli, err := s.repository.FindClient(cpf)
 	if err != nil {
 		s.log.LogLevelError("------------save error-------------")
 		return nil, err
@@ -29,13 +30,13 @@ func (s *Service) FindCliente(cpf string) (*model.Cliente, error) {
 	}
 	s.log.LogLevelInfo("------------save sucess-------------")
 
-	return cliente, err
+	return dto.ToClientDTOResponse(cli), err
 }
 
 // DeleteCliente implements Iservice.
-func (s *Service) DeleteCliente(cpf string) error {
+func (s *Service) DeleteClient(cpf string) error {
 	// criar DTO e transdormar aqui
-	err := s.repository.DeleteCliente(cpf)
+	err := s.repository.DeleteClient(cpf)
 	if err != nil {
 		s.log.LogLevelError("------------save error-------------")
 		return err
@@ -45,10 +46,9 @@ func (s *Service) DeleteCliente(cpf string) error {
 	return nil
 }
 
-// SaveCliente implements Iservice.
-func (s *Service) SaveCliente(cliente *model.Cliente) error {
-	// criar DTO e transdormar aqui
-	err := s.repository.SaveCliente(cliente)
+func (s *Service) SaveClient(client *model.Client) error {
+
+	err := s.repository.SaveClient(client)
 	if err != nil {
 		s.log.LogLevelError("------------save error-------------")
 		return err
@@ -58,7 +58,7 @@ func (s *Service) SaveCliente(cliente *model.Cliente) error {
 	return nil
 }
 
-func NewService(repo repository.IClientRepository, l log.ILogLevel) Iservice {
+func NewService(repo repository.IClientRepository, l log.ILogLevel) IClientService {
 	return &Service{
 		repository: repo,
 		log:        l,

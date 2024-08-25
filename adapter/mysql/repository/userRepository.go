@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+//criar logs
+
 type IUserRepository interface {
 	SaveUser(cliente *model.User) error
 	FindUser(cpf string) (*model.User, error)
@@ -18,7 +20,7 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) SaveUser(user *model.User) error {
-	_, err := r.db.Exec("INSERT INTO user (user_username, user_password,) VALUES (?, ?)", user.Username, user.Password)
+	_, err := r.db.Exec("INSERT INTO user (user_username, user_password) VALUES (?, ?)", user.Username, user.Password)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			return errors.AlreadyExistsf("Name '%s' create error: user already exists", user.Username)

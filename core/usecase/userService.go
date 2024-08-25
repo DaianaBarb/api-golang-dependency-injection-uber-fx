@@ -6,6 +6,8 @@ import (
 	log "golang-uber-fx/util/log"
 )
 
+//criar logs
+
 type IUserService interface {
 	SaveUser(user *model.User) error
 	FindUser(name string) (*model.User, error)
@@ -16,7 +18,6 @@ type UserService struct {
 	log        log.ILogLevel
 }
 
-// FindCliente implements Iservice.
 func (s *UserService) FindUser(cpf string) (*model.User, error) {
 	// criar DTO e transdormar aqui
 
@@ -30,7 +31,6 @@ func (s *UserService) FindUser(cpf string) (*model.User, error) {
 
 	return user, err
 }
-
 
 func (s *UserService) SaveUser(user *model.User) error {
 	// criar DTO e transdormar aqui
