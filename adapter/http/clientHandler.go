@@ -70,7 +70,11 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 	}
 	util.ValidateStruct(cliRequest)
 
-	c.serv.SaveClient(dto.ToClientModel(cliRequest))
+	err = c.serv.SaveClient(dto.ToClientModel(cliRequest))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+
+	}
 	w.Header().Add("Content-Type", "application/json")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

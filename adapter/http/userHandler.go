@@ -70,7 +70,11 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 	}
 	util.ValidateStruct(userRequest)
 	userRequest.Password = createHashSha256(userRequest.Password)
-	u.serv.SaveUser(userRequest)
+	err = u.serv.SaveUser(userRequest)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+
+	}
 	w.Header().Add("Content-Type", "application/json")
 	token, err := CreateToken(userRequest.Username)
 	if err != nil {
