@@ -3,11 +3,13 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"golang-uber-fx/core/domain"
 	"golang-uber-fx/core/dto"
 	service "golang-uber-fx/core/usecase"
 	"golang-uber-fx/util"
 	"golang-uber-fx/util/errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -16,6 +18,7 @@ type IClientServer interface {
 	Save(w http.ResponseWriter, r *http.Request)
 	Find(w http.ResponseWriter, r *http.Request)
 	Del(w http.ResponseWriter, r *http.Request)
+	FindAllByParam(w http.ResponseWriter, r *http.Request)
 }
 
 type ClientServer struct {
@@ -174,6 +177,89 @@ func (c *ClientServer) Del(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.serv.DeleteClient(cpf)
+	w.WriteHeader(http.StatusOK)
+
+}
+
+func (c *ClientServer) FindAllByParam(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	cpf := r.URL.Query().Get("cpf")
+
+	name := r.URL.Query().Get("name")
+
+	active := r.URL.Query().Get("active")
+
+	createdAt := r.URL.Query().Get("createdAt")
+
+	tel := r.URL.Query().Get("tel")
+
+	lim := r.URL.Query().Get("limit")
+
+	limit := 0
+
+	if lim == "" {
+		limit = 30
+	} else {
+
+		n, err := strconv.Atoi(lim)
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		limit = n
+		if limit > 100 {
+			limit = 100
+		}
+
+	}
+
+	pg := r.URL.Query().Get("page")
+
+	if pg == "" {
+		pg = "1"
+	}
+
+	n, err := strconv.Atoi(pg)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	page := n
+
+	items, pagination, err := c.serv.FindAllClientByParam(name, tel, cpf, active, createdAt, limit, page)
+
+	if err != nil {
+
+		if errors.IsNotFound(err) {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		return
+
+	}
+
+	response := dto.ResponsePagination{
+		Items: items,
+		Result: domain.PaginationData{
+			TotalPage: pagination.TotalPage,
+			Count:     pagination.Count,
+			Page:      pagination.Page,
+			Limit:     pagination.Limit,
+			Total:     pagination.Total,
+		},
+	}
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 
 }

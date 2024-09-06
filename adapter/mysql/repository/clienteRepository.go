@@ -14,7 +14,13 @@ type IClientRepository interface {
 	SaveClient(client *model.Client) error
 	DeleteClient(cpf string) error
 	FindClient(cpf string) (*model.Client, error)
+	FindAllClientByParam(name, tel, cpf, active, createdAt string, limit int, page int) ([]model.Client, *model.PaginationData, error)
 }
+
+const (
+	SELECT_CLIENT       = "SELECT  client_name, client_tel, client_cpf, client_createdAt, client_active  FROM client_cli "
+	SELECT_CLIENT_COUNT = "SELECT count(*) FROM client_cli "
+)
 
 type ClientRepository struct {
 	db *sql.DB
@@ -55,6 +61,105 @@ func (r *ClientRepository) FindClient(cpf string) (*model.Client, error) {
 		return nil, fmt.Errorf("cpf  %s: error: %v", cpf, err)
 	}
 	return cli, nil
+}
+
+func (r *ClientRepository) FindAllClientByParam(name, tel, cpf, active, createdAt string, limit int, page int) ([]model.Client, *model.PaginationData, error) {
+	itemList := []model.Client{}
+	pagination := &model.PaginationData{}
+	offset := limit * (page - 1)
+
+	var count int = 0
+	var args []any
+	sqlWhere := ""
+	conectName := " WHERE "
+
+	if name != "" {
+		sqlWhere = sqlWhere + conectName + "client_name=?"
+		conectName = " AND "
+
+		args = append(args, name)
+
+	}
+	if tel != "" {
+		sqlWhere = sqlWhere + conectName + "client_tel=?"
+		conectName = " AND "
+
+		args = append(args, tel)
+
+	}
+	if cpf != "" {
+		sqlWhere = sqlWhere + conectName + "client_cpf=?"
+		conectName = " AND "
+
+		args = append(args, cpf)
+
+	}
+	if active != "" {
+		sqlWhere = sqlWhere + conectName + "client_active=?"
+		conectName = " AND "
+		if active == "true" {
+			args = append(args, 1)
+		} else {
+			args = append(args, 0)
+		}
+	}
+	if createdAt != "" {
+		sqlWhere = sqlWhere + conectName + "client_createdAt=?"
+		conectName = " AND "
+
+		args = append(args, createdAt)
+
+	}
+	rows, err := r.db.Query(SELECT_CLIENT_COUNT+sqlWhere, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			defer rows.Close()
+			return nil, nil, err
+		}
+	}
+	rows.Close()
+	orderBy := " ORDER BY client_name LIMIT ? OFFSET ?"
+	args = append(args, limit)
+	args = append(args, offset)
+	rows, err = r.db.Query(SELECT_CLIENT+sqlWhere+orderBy, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		tag, err := scanRowClient(rows)
+		if err != nil {
+			return nil, nil, err
+		}
+		itemList = append(itemList, *tag)
+	}
+
+	n := count % limit
+	nOfPages := count / limit
+	if n > 0 {
+		nOfPages = nOfPages + 1
+	}
+
+	pagination.Page = page
+	pagination.TotalPage = nOfPages
+	pagination.Limit = limit
+	pagination.Total = count
+	pagination.Count = len(itemList)
+
+	return itemList, pagination, nil
+
+}
+func scanRowClient(rows *sql.Rows) (*model.Client, error) {
+	item := new(model.Client)
+	err := rows.Scan(&item.Name, &item.Tel, &item.Cpf,
+		&item.CreatedAt, &item.Active)
+
+	return item, err
 }
 
 func NewClientRepository(db *sql.DB) IClientRepository {

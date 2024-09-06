@@ -18,6 +18,11 @@ type ClientDtoRequest struct {
 	Cpf  string `json:"cpf"`
 }
 
+type ResponsePagination struct {
+	Items  []ClientDtoResponse  `json:"items"`
+	Result model.PaginationData `json:"_result"`
+}
+
 func ToClientModel(cli *ClientDtoRequest) *model.Client {
 
 	return &model.Client{
@@ -38,5 +43,23 @@ func ToClientDTOResponse(cli *model.Client) *ClientDtoResponse {
 		Active:    cli.Active,
 		CreatedAt: cli.CreatedAt,
 	}
+
+}
+
+func ToClientListResponse(cli []model.Client) []ClientDtoResponse {
+
+	list := []ClientDtoResponse{}
+
+	for _, c := range cli {
+
+		list = append(list, ClientDtoResponse{
+			Name:      c.Name,
+			Tel:       c.Tel,
+			Active:    c.Active,
+			CreatedAt: c.CreatedAt})
+
+	}
+
+	return list
 
 }

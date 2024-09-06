@@ -11,6 +11,7 @@ type IClientService interface {
 	SaveClient(cliente *model.Client) error
 	DeleteClient(cpf string) error
 	FindClient(cpf string) (*dto.ClientDtoResponse, error)
+	FindAllClientByParam(name, tel, cpf, active, createdAt string, limit int, page int) ([]dto.ClientDtoResponse, *model.PaginationData, error)
 }
 
 type Service struct {
@@ -56,6 +57,15 @@ func (s *Service) SaveClient(client *model.Client) error {
 	}
 	s.log.LogLevelInfo("------------save sucess-------------")
 	return nil
+}
+func (s *Service) FindAllClientByParam(name, tel, cpf, active, createdAt string, limit int, page int) ([]dto.ClientDtoResponse, *model.PaginationData, error) {
+	modelList, pag, err := s.repository.FindAllClientByParam(name, tel, cpf, active, createdAt, limit, page)
+	if err != nil {
+		return nil, nil, err
+	}
+	newListDto := dto.ToClientListResponse(modelList)
+
+	return newListDto, pag, nil
 }
 
 func NewService(repo repository.IClientRepository, l log.ILogLevel) IClientService {

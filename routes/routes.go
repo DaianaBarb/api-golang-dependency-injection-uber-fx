@@ -18,6 +18,7 @@ func (s *Routes) RegisterRoutes() {
 
 	c.HandleFunc("/client/{cpf}", s.hanCli.Find).Methods("GET")
 	c.HandleFunc("/client", s.hanCli.Save).Methods("POST")
+	c.HandleFunc("/client", s.hanCli.FindAllByParam).Methods("GET").Queries()
 	c.HandleFunc("/client/{cpf}", s.hanCli.Del).Methods("DELETE")
 	c.HandleFunc("/user", s.hanUse.Save).Methods("POST")
 	c.HandleFunc("/user/{name}", s.hanUse.Find).Methods("GET")

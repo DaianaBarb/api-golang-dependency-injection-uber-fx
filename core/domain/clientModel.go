@@ -13,3 +13,10 @@ type Client struct {
 type ClienteFindQuery struct {
 	Cpf string `query:"cpf"`
 }
+type PaginationData struct {
+	TotalPage int `json:"totalPage"`
+	Count     int `json:"count"`
+	Page      int `json:"page"`
+	Limit     int `json:"limit"`
+	Total     int `json:"total"`
+}
