@@ -72,14 +72,17 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 	userRequest.Password = createHashSha256(userRequest.Password)
 	err = u.serv.SaveUser(userRequest)
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
-
+		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	token, err := CreateToken(userRequest.Username)
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Errorf("No username found")
+
+		return
 	}
 
 	err = json.NewEncoder(w).Encode(&dto.UserDTO{
@@ -87,10 +90,12 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 		Token:    token,
 	})
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	return
 
 }
 
