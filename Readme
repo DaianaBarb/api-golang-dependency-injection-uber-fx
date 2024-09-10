@@ -1,0 +1,51 @@
+o que terá neste projeto?
+
+injeção de dependencia com uber fx ----OK
+
+padrão rest----OK
+
+arquitetura clean code ---- OK
+
+performace na criação de structs -----EM CONSTRUÇÃO
+
+logs  ----- OK ( FALTA MELHORAR E INSERIR NAS OUTRAS PARTES DO CODIGO)
+
+dto -----OK
+
+conexão com banco mysql---- OK
+
+Consumidor e produtor de fila na aws com localStack ----- (FALTA TERMINAR)
+
+config de CI ----- (EM CONSTRUÇÃO)
+
+dockerfile  --- OK
+
+docker-compose com prometheus, mysql e grafana --- OK
+
+observabilidade com prometheus e grafana ---- ok (FALTA TERMINAR)
+
+testes de mock ----  ok (FALTA TERMINAR)
+
+token jwt ----- OK
+
+paginação ---- OK
+
+busca por parametros no mysql ----- OK
+
+documentação ---- (FALTA TERMINAR)
+
+EXTRA:
+CRIAR MAIS TABELAS COM RELACIONAMENTO E CRIAR MAIS HANDLERS
+
+
+
+em que consiste o projeto?
+
+Criação de um projeto Simples com tecnologias atuais. Projeto para estudo com as tecnologias para: performace, observabilidade, padrão de arquitetura clean code ,CI, docker, docker-compose, padroes SOLID, segurança, testes, e um pouco de Cloud aws
+
+
+como rodar o projeto?
+
+na raiz do projeto digite o comando: docker build -t image-api-golang-fx .
+
+depois rode: docker-compose up
