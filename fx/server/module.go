@@ -110,6 +110,7 @@ func Start2() {
 		fx.Invoke(func(job routes.IRoutes) error {
 
 			job.RegisterRoutes()
+
 			// OU ...
 			// r := mux.NewRouter()
 			// r.HandleFunc("/cliente", job.Save).Methods("POST")

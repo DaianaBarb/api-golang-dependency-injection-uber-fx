@@ -8,8 +8,10 @@ import (
 	service "golang-uber-fx/core/usecase"
 	"golang-uber-fx/util"
 	"golang-uber-fx/util/errors"
+	pro "golang-uber-fx/util/observability"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -37,21 +39,37 @@ func NewServer(serv service.IClientService) IClientServer {
 }
 
 func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
+
+	defer func() {
+
+		requestDuration := pro.DurationSeconds
+		totalRequests := pro.TotalRequests
+		start := time.Now()
+		duration := time.Since(start)
+
+		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
+	}()
+	responseStatus := pro.ResponseStatus
 	w.Header().Set("Content-Type", "application/json")
 	tokenString := r.Header.Get("Authorization")
 	if tokenString == "" {
 		err := json.NewEncoder(w).Encode("Missing authorization header")
 		if err != nil {
+			responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		err = json.NewEncoder(w).Encode("Unauthorized")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
+
 			return
 		}
-		w.WriteHeader(http.StatusUnauthorized)
 
+		w.WriteHeader(http.StatusUnauthorized)
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusUnauthorized)).Inc()
 		return
 	}
 
@@ -60,6 +78,7 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 	err := VerifyToken(tokenString)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusUnauthorized)).Inc()
 		fmt.Fprint(w, "Invalid token")
 		return
 	}
@@ -67,26 +86,43 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 	cliRequest := new(dto.ClientDtoRequest)
 	err = json.NewDecoder(r.Body).Decode(&cliRequest)
 	if err != nil {
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusUnprocessableEntity)).Inc()
 
 		errors.UnprocessableEntityf("unprocessable entity error: %v", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 	util.ValidateStruct(cliRequest)
 
 	err = c.serv.SaveClient(dto.ToClientModel(cliRequest))
 	if err != nil {
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 
 	}
 	w.Header().Add("Content-Type", "application/json")
 	if err != nil {
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusOK)).Inc()
+
 
 }
 func (c *ClientServer) Find(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+
+		responseStatus := pro.ResponseStatus
+		requestDuration := pro.DurationSeconds
+		totalRequests := pro.TotalRequests
+		start := time.Now()
+		duration := time.Since(start)
+		responseStatus.WithLabelValues(r.URL.Path).Inc()
+		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
 	tokenString := r.Header.Get("Authorization")
@@ -143,6 +179,17 @@ func (c *ClientServer) Find(w http.ResponseWriter, r *http.Request) {
 
 }
 func (c *ClientServer) Del(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+
+		responseStatus := pro.ResponseStatus
+		requestDuration := pro.DurationSeconds
+		totalRequests := pro.TotalRequests
+		start := time.Now()
+		duration := time.Since(start)
+		responseStatus.WithLabelValues(r.URL.Path).Inc()
+		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
 	tokenString := r.Header.Get("Authorization")
@@ -182,6 +229,17 @@ func (c *ClientServer) Del(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *ClientServer) FindAllByParam(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+
+		responseStatus := pro.ResponseStatus
+		requestDuration := pro.DurationSeconds
+		totalRequests := pro.TotalRequests
+		start := time.Now()
+		duration := time.Since(start)
+		responseStatus.WithLabelValues(r.URL.Path).Inc()
+		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
+	}()
 	w.Header().Set("Content-Type", "application/json")
 
 	cpf := r.URL.Query().Get("cpf")

@@ -10,13 +10,23 @@ import (
 	service "golang-uber-fx/core/usecase"
 	"golang-uber-fx/util"
 	"golang-uber-fx/util/errors"
+	pro "golang-uber-fx/util/observability"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+func init() {
+	prometheus.MustRegister(pro.DurationSeconds)
+	prometheus.MustRegister(pro.ResponseStatus)
+	prometheus.MustRegister(pro.TotalRequests)
+
+}
 
 type IUserServer interface {
 	Save(w http.ResponseWriter, r *http.Request)
@@ -61,25 +71,48 @@ func createHashSha256(password string) string {
 }
 func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 
+	defer func() {
+
+		requestDuration := pro.DurationSeconds
+		totalRequests := pro.TotalRequests
+		start := time.Now()
+		duration := time.Since(start)
+		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
+	}()
+	responseStatus := pro.ResponseStatus
 	userRequest := new(model.User)
+
 	err := json.NewDecoder(r.Body).Decode(&userRequest)
 	if err != nil {
-
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusUnprocessableEntity)).Inc()
 		errors.UnprocessableEntityf("unprocessable entity error: %v", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+
 		return
 	}
-	util.ValidateStruct(userRequest)
+	err = util.ValidateStruct(userRequest)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusUnprocessableEntity)).Inc()
+		w.WriteHeader(http.StatusUnprocessableEntity)
+
+		return
+	}
 	userRequest.Password = createHashSha256(userRequest.Password)
 	err = u.serv.SaveUser(userRequest)
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	token, err := CreateToken(userRequest.Username)
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 
 		return
@@ -91,11 +124,13 @@ func (u *UserServer) Save(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
-	return
+	responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusOK)).Inc()
 
 }
 
@@ -108,6 +143,18 @@ func NewUserServer(serv service.IUserService) IUserServer {
 }
 
 func (c *UserServer) CreateToken(w http.ResponseWriter, r *http.Request) {
+
+	defer func() {
+
+		responseStatus := pro.ResponseStatus
+		requestDuration := pro.DurationSeconds
+		totalRequests := pro.TotalRequests
+		start := time.Now()
+		duration := time.Since(start)
+		responseStatus.WithLabelValues(r.URL.Path, w.Header().Get("statusCode")).Inc()
+		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+		totalRequests.WithLabelValues(r.URL.Path).Inc()
+	}()
 	w.Header().Set("Content-Type", "application/json")
 
 	var u model.User

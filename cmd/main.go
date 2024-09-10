@@ -14,6 +14,9 @@ const (
 
 func init() {
 
+	// prometheus.MustRegister(pro.DurationSeconds)
+	// prometheus.MustRegister(pro.ResponseStatus)
+
 	if _, err := os.Stat(ENV_FILE); os.IsNotExist(err) {
 		fmt.Println("error in env file")
 	}
@@ -27,6 +30,7 @@ func init() {
 }
 
 func main() {
+
 	server.Start2()
 }
 

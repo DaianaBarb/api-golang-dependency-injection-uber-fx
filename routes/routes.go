@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type IRoutes interface {
@@ -15,7 +16,7 @@ type IRoutes interface {
 func (s *Routes) RegisterRoutes() {
 
 	c := mux.NewRouter()
-
+	c.Handle("/metrics", promhttp.Handler())
 	c.HandleFunc("/client/{cpf}", s.hanCli.Find).Methods("GET")
 	c.HandleFunc("/client", s.hanCli.Save).Methods("POST")
 	c.HandleFunc("/client", s.hanCli.FindAllByParam).Methods("GET").Queries()
