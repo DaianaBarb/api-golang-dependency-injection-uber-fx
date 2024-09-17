@@ -2,10 +2,12 @@ package server
 
 import (
 	handler "golang-uber-fx/adapter/http"
+	viacep "golang-uber-fx/adapter/integrations/viaCep"
 	my "golang-uber-fx/adapter/mysql"
 	repository "golang-uber-fx/adapter/mysql/repository"
 	service "golang-uber-fx/core/usecase"
 	"golang-uber-fx/routes"
+	"net/http"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 
@@ -35,6 +37,13 @@ func Start() {
 }
 
 // outra forma de chamar o fx e a forma que vc cria uma anotação com o nome da função e informa o retorno dela dentro de um fx.As
+var ModuleClientViaCep = fx.Module("viaCep", fx.Provide(
+	fx.Annotate(
+		viacep.NewViaCep,
+		fx.As(new(viacep.IviaCep)),
+	),
+),
+)
 
 var ModuleClientRepository = fx.Module("repository", fx.Provide(
 	fx.Annotate(
@@ -43,6 +52,7 @@ var ModuleClientRepository = fx.Module("repository", fx.Provide(
 	),
 ),
 )
+
 var ModuleUserRepository = fx.Module("UserRepository", fx.Provide(
 	fx.Annotate(
 		repository.NewUserRepository,
@@ -97,8 +107,10 @@ func Start2() {
 		fx.Provide(
 			mux.NewRouter,
 			my.NewConnectDB,
+			http.DefaultClient,
 		),
 		ModuleClientRepository,
+		ModuleClientViaCep,
 		ModuleUserRepository,
 		ModuleLog,
 		ModuleClientService,
