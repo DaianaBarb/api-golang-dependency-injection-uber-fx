@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+    localstack:
+        image: localstack/localstack
+        container_name: localstack
+        environment:
+        - DOCKER_HOST=unix:///var/run/docker.sock
+        - SERVICES=s3,sqs,sns,dynamodb
+        - DATA_DIR=/tmp/localstack/data
+        - DEBUG=1
+        # AWS
+        - AWS_ACCESS_KEY_ID=fake
+        - AWS_SECRET_ACCESS_KEY=fake
+        - AWS_DEFAULT_REGION=us-east-1
+        - AWS_DEFAULT_OUTPUT=json
+        ports:
+        - "4566:4566" # health
+        volumes:
+        # - ./localstack/docker-entrypoint.sh:/docker-entrypoint-initaws.d/docker-entrypoint.sh
+        - ./vol/localstack/data:/tmp/localstack/data
+        - ./vol/localstack/config:/root/localstack/config
+        - ./vol/localstack/s3:/root/localstack/s3
+
+    mongo:
+        image: mongo
+        container_name: mongo
+        ports:
+            - 27017:27017
+        volumes:
+            - ./entrypoint.sh:/docker-entrypoint-initdb.d/entrypoint.sh
+            - ./vol/mongo/:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+            MONGO_INITDB_DATABASE: local
+
+    oracle:
+        image: wnameless/oracle-xe-11g-r2
+        container_name: oracle
+        restart: always
+        ports:
+        - 49161:1521

@@ -32,6 +32,7 @@ func init() {
 func main() {
 
 	server.Start2()
+
 }
 
 // 	h := sha256.New()
