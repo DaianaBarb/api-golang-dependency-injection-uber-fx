@@ -1,21 +1,24 @@
 package dto
 
 import (
+	"golang-uber-fx/core/domain"
 	model "golang-uber-fx/core/domain"
 	"time"
 )
 
 type ClientDtoResponse struct {
-	Name      string    `json:"name"`
-	Tel       string    `json:"tel"`
-	Active    bool      `json:"active"`
-	CreatedAt time.Time `json:"createdAt"`
+	Name      string         `json:"name"`
+	Tel       string         `json:"tel"`
+	Active    bool           `json:"active"`
+	CreatedAt time.Time      `json:"createdAt"`
+	Adress    domain.Address `json:"adress"`
 }
 
 type ClientDtoRequest struct {
 	Name string `json:"name"`
 	Tel  string `json:"tel"`
 	Cpf  string `json:"cpf"`
+	Cep  string `json:"cep"`
 }
 
 type ResponsePagination struct {
@@ -42,6 +45,13 @@ func ToClientDTOResponse(cli *model.Client) *ClientDtoResponse {
 		Tel:       cli.Tel,
 		Active:    cli.Active,
 		CreatedAt: cli.CreatedAt,
+		Adress: model.Address{ZipCode: cli.Address.ZipCode,
+			PublicPlace:  cli.Address.PublicPlace,
+			Neighborhood: cli.Address.Neighborhood,
+			Location:     cli.Address.Location,
+			Uf:           cli.Address.Uf,
+			State:        cli.Address.State,
+			Region:       cli.Address.Region},
 	}
 
 }

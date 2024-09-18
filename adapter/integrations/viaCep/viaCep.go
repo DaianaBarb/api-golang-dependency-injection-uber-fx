@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	tryMaxRead int = 5
+	tryMaxRead         int = 5
+	timeoutHTTPRequest     = 10 * time.Second
 )
 
 type IhttpClient interface {
@@ -22,18 +23,20 @@ type ViaClient struct {
 }
 
 type IviaCep interface {
-	GetEndereco(cep string) (*domain.ViaCep, error)
+	GetAdress(cep string) (*domain.ViaCep, error)
 }
 
-func NewViaCep(cli *http.Client) IviaCep {
+func NewViaCep() IviaCep {
 
 	return &ViaClient{
-		client: cli,
-		url:    os.Getenv("URL_VIACEP"),
+		client: &http.Client{
+			Timeout: timeoutHTTPRequest,
+		},
+		url: os.Getenv("URL_VIACEP"),
 	}
 }
 
-func (a *ViaClient) GetEndereco(cep string) (*domain.ViaCep, error) {
+func (a *ViaClient) GetAdress(cep string) (*domain.ViaCep, error) {
 
 	uri := fmt.Sprintf(a.url, cep)
 

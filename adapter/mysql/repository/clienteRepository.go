@@ -39,7 +39,16 @@ func (r *ClientRepository) DeleteClient(cpf string) error {
 
 // SaveCliente implements IClientRepository.
 func (r *ClientRepository) SaveClient(client *model.Client) error {
-	_, err := r.db.Exec("INSERT INTO client_cli (client_name, client_tel, client_cpf, client_createdAt, client_active ) VALUES (?, ?, ?, ?, ?)", client.Name, client.Tel, client.Cpf, client.CreatedAt, client.Active)
+	// _, err := r.db.Exec("INSERT INTO client_cli (client_name, client_tel, client_cpf, client_createdAt, client_active ) VALUES (?, ?, ?, ?, ?)", client.Name, client.Tel, client.Cpf, client.CreatedAt, client.Active)
+	// if err != nil {
+	// 	if strings.Contains(err.Error(), "already exists") {
+	// 		return errors.AlreadyExistsf("Name '%s' create error: client already exists", client.Name)
+	// 	} else {
+	// 		return fmt.Errorf("cliente save error, name:  %s: error: %v", client.Name, err)
+	// 	}
+	// }
+
+	_, err := r.db.Exec("START TRANSACTION; INSERT INTO client_cli (client_name, client_tel, client_cpf, client_createdAt, client_active ) VALUES (?, ?, ?, ?, ?); INSERT INTO adress_cli(zipCode,publicPlace,neighborhood,location,uf,state,region,cpf_cli) VALUES (?, ?, ?, ?, ?,?,?,?); COMMIT;", client.Name, client.Tel, client.Cpf, client.CreatedAt, client.Active, client.Address.ZipCode, client.Address.PublicPlace, client.Address.Neighborhood, client.Address.Location, client.Address.Uf, client.Address.State, client.Address.Region, client.Cpf)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			return errors.AlreadyExistsf("Name '%s' create error: client already exists", client.Name)
@@ -52,9 +61,11 @@ func (r *ClientRepository) SaveClient(client *model.Client) error {
 
 func (r *ClientRepository) FindClient(cpf string) (*model.Client, error) {
 
-	cli := &model.Client{}
-	row := r.db.QueryRow("SELECT client_name, client_tel, client_cpf, client_createdAt, client_active FROM client_cli WHERE client_cpf = ?", cpf)
-	if err := row.Scan(&cli); err != nil {
+	cli := &model.Client{
+		Address: &model.Address{},
+	}
+	row := r.db.QueryRow("SELECT C.client_name, C.client_tel, C.client_cpf, C.client_createdAt,C.client_active, A.zipCode,A.publicPlace,A.neighborhood,A.location,A.uf,A.state,A.region from client_cli as C  join adress_cli as A ON C.client_cpf = A.cpf_cli WHERE client_cpf = ?", cpf)
+	if err := row.Scan(&cli.Name, &cli.Tel, &cli.Cpf, &cli.CreatedAt, &cli.Active, &cli.Address.ZipCode, &cli.Address.PublicPlace, &cli.Address.Neighborhood, &cli.Address.Location, &cli.Address.Uf, &cli.Address.State, &cli.Address.Region); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.NotFoundf("cpf %s: not found client", cpf)
 		}

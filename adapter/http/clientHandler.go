@@ -109,20 +109,19 @@ func (c *ClientServer) Save(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	responseStatus.WithLabelValues(r.URL.Path, strconv.Itoa(http.StatusOK)).Inc()
 
-
 }
 func (c *ClientServer) Find(w http.ResponseWriter, r *http.Request) {
-	defer func() {
+	// defer func() {
 
-		responseStatus := pro.ResponseStatus
-		requestDuration := pro.DurationSeconds
-		totalRequests := pro.TotalRequests
-		start := time.Now()
-		duration := time.Since(start)
-		responseStatus.WithLabelValues(r.URL.Path).Inc()
-		requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
-		totalRequests.WithLabelValues(r.URL.Path).Inc()
-	}()
+	// 	responseStatus := pro.ResponseStatus
+	// 	requestDuration := pro.DurationSeconds
+	// 	totalRequests := pro.TotalRequests
+	// 	start := time.Now()
+	// 	duration := time.Since(start)
+	// 	responseStatus.WithLabelValues(r.URL.Path).Inc()
+	// 	requestDuration.WithLabelValues(r.URL.Path).Observe(duration.Seconds())
+	// 	totalRequests.WithLabelValues(r.URL.Path).Inc()
+	// }()
 
 	w.Header().Set("Content-Type", "application/json")
 	tokenString := r.Header.Get("Authorization")

@@ -8,6 +8,17 @@ type Client struct {
 	Cpf       string    `json:"cpf"`
 	Active    bool      `json:"active"`
 	CreatedAt time.Time `json:"createdAt"`
+	Address   *Address   `json:"address"`
+}
+
+type Address struct {
+	ZipCode      string `json:"zipCode"`
+	PublicPlace  string `json:"publicPlace"`
+	Neighborhood string `json:"neighborhood"`
+	Location     string `json:"location"`
+	Uf           string `json:"uf"`
+	State        string `json:"state"`
+	Region       string `json:"region"`
 }
 
 type ClienteFindQuery struct {

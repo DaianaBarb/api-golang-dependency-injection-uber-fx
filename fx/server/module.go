@@ -7,7 +7,6 @@ import (
 	repository "golang-uber-fx/adapter/mysql/repository"
 	service "golang-uber-fx/core/usecase"
 	"golang-uber-fx/routes"
-	"net/http"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/gorilla/mux"
 
@@ -107,7 +106,6 @@ func Start2() {
 		fx.Provide(
 			mux.NewRouter,
 			my.NewConnectDB,
-			http.DefaultClient,
 		),
 		ModuleClientRepository,
 		ModuleClientViaCep,
